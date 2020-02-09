@@ -68,7 +68,7 @@ func main() {
 
 	l2, err := c.RequestLine(
 		rpi.GPIO3,
-		gpiod.WithPullUp,
+		gpiod.WithPullDown,
 		gpiod.WithBothEdges(func(evt gpiod.LineEvent) {
 			if evt.Type == gpiod.LineEventFallingEdge && doorState != DOOR_SHUT {
 				doorState = DOOR_SHUT
