@@ -33,6 +33,14 @@ func readDoorState(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, message)
 }
 
+func pressButton(line *gpiod.Line) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		line.SetValue(1)
+		time.Sleep(200 * time.Millisecond)
+		line.SetValue(0)
+	})
+}
+
 func main() {
 	flag.Parse()
 
@@ -44,31 +52,19 @@ func main() {
 
 	led := 0
 
-	l, err := c.RequestLine(rpi.GPIO2, gpiod.AsOutput(led))
+	buttonLine, err := c.RequestLine(rpi.GPIO2, gpiod.AsOutput(led))
 	if err != nil {
 		panic(err)
 	}
 	defer func() {
-		l.Reconfigure(gpiod.AsInput)
-		l.Close()
+		buttonLine.Reconfigure(gpiod.AsInput)
+		buttonLine.Close()
 	}()
 
 	// capture exit signals to ensure pin is reverted to input on exit.
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(quit)
-
-	go func() {
-		for {
-			select {
-			case <-time.After(1 * time.Second):
-				led ^= 1
-				l.SetValue(led)
-			case <-quit:
-				return
-			}
-		}
-	}()
 
 	l2, err := c.RequestLine(rpi.GPIO6, gpiod.WithBothEdges(func(evt gpiod.LineEvent) {
 		if evt.Type == gpiod.LineEventFallingEdge && doorState != DOOR_SHUT {
@@ -85,5 +81,6 @@ func main() {
 	defer l2.Close()
 
 	http.HandleFunc("/state", readDoorState)
+	http.Handle("/press", pressButton(buttonLine))
 	http.ListenAndServe(*addr, nil)
 }
