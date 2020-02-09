@@ -66,15 +66,18 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(quit)
 
-	l2, err := c.RequestLine(rpi.GPIO6, gpiod.WithPullUp, gpiod.WithBothEdges(func(evt gpiod.LineEvent) {
-		if evt.Type == gpiod.LineEventFallingEdge && doorState != DOOR_SHUT {
-			doorState = DOOR_SHUT
-			log.Println("DOOR_SHUT")
-		} else if evt.Type == gpiod.LineEventRisingEdge && doorState != DOOR_OPEN {
-			doorState = DOOR_OPEN
-			log.Println("DOOR_OPEN")
-		}
-	}))
+	l2, err := c.RequestLine(
+		rpi.GPIO3,
+		gpiod.WithPullUp,
+		gpiod.WithBothEdges(func(evt gpiod.LineEvent) {
+			if evt.Type == gpiod.LineEventFallingEdge && doorState != DOOR_SHUT {
+				doorState = DOOR_SHUT
+				log.Println("DOOR_SHUT")
+			} else if evt.Type == gpiod.LineEventRisingEdge && doorState != DOOR_OPEN {
+				doorState = DOOR_OPEN
+				log.Println("DOOR_OPEN")
+			}
+		}))
 	if err != nil {
 		panic(err)
 	}
