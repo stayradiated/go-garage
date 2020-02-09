@@ -71,10 +71,10 @@ func main() {
 	}()
 
 	l2, err := c.RequestLine(rpi.GPIO6, gpiod.WithBothEdges(func(evt gpiod.LineEvent) {
-		if evt.Type == gpiod.LineEventFallingEdge {
+		if evt.Type == gpiod.LineEventFallingEdge && doorState != DOOR_SHUT {
 			doorState = DOOR_SHUT
 			log.Println("DOOR_SHUT")
-		} else {
+		} else if evt.Type == gpiod.LineEventRisingEdge && doorState != DOOR_OPEN {
 			doorState = DOOR_OPEN
 			log.Println("DOOR_OPEN")
 		}
