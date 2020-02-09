@@ -18,7 +18,7 @@ const (
 var (
 	addr      = flag.String("listen-address", ":8080", "The address to listen on for HTTP requests.")
 	doorState = DOOR_SHUT
-	rate      = time.Second / 10
+	rate      = time.Second / 2
 	throttle  = time.Tick(rate)
 )
 
