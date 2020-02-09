@@ -61,7 +61,7 @@ func main() {
 	go func() {
 		for {
 			select {
-			case <-time.After(2 * time.Second):
+			case <-time.After(1 * time.Second):
 				led ^= 1
 				l.SetValue(led)
 			case <-quit:
@@ -71,11 +71,13 @@ func main() {
 	}()
 
 	l2, err := c.RequestLine(rpi.GPIO6, gpiod.WithBothEdges(func(evt gpiod.LineEvent) {
-		edge := "rising"
 		if evt.Type == gpiod.LineEventFallingEdge {
-			edge = "falling"
+			doorState = DOOR_SHUT
+			log.Println("DOOR_SHUT")
+		} else {
+			doorState = DOOR_OPEN
+			log.Println("DOOR_OPEN")
 		}
-		log.Printf("event:%3d %-7s\n", evt.Offset, edge)
 	}))
 	if err != nil {
 		panic(err)
